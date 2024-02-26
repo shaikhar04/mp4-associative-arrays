@@ -7,7 +7,7 @@ import static java.lang.reflect.Array.newInstance;
  * and values of type V. Associative Arrays store key/value pairs
  * and permit you to look up values by key.
  *
- * @author Your Name Here
+ * @author Arsal Shaikh
  * @author Samuel A. Rebelsky
  */
 public class AssociativeArray<K, V> {
@@ -75,8 +75,27 @@ public class AssociativeArray<K, V> {
    * Set the value associated with key to value. Future calls to
    * get(key) will return value.
    */
-  public void set(K key, V value) throws NullKeyException {
-    // STUB
+  public void set(K key, V value) {
+    // Catch null key
+    // if (key == null) {
+    //   throw new NullKeyException();
+    // } // if
+
+    // Setting into first empty spot
+    int setIndex;
+    try {
+      setIndex = this.find(null);
+      this.pairs[setIndex].key = key;
+      this.pairs[setIndex].value = value;
+      this.size++;
+    } catch (KeyNotFoundException e) {
+      // if arr is full expand and try again
+      this.expand();
+      setIndex = this.find(null);
+      this.pairs[setIndex].key = key;
+      this.pairs[setIndex].value = value;
+      this.size++;
+    }
   } // set(K,V)
 
   /**
@@ -87,7 +106,13 @@ public class AssociativeArray<K, V> {
    *                              appear in the associative array.
    */
   public V get(K key) throws KeyNotFoundException {
-    return null; // STUB
+    // Catching null key
+    if (key == null) {
+      throw new KeyNotFoundException();
+    } // if
+
+    // Getting first instance of key found
+    return this.pairs[this.find(key)].value;
   } // get(K)
 
   /**
@@ -95,7 +120,14 @@ public class AssociativeArray<K, V> {
    * return false for the null key.
    */
   public boolean hasKey(K key) {
-    return false; // STUB
+    try {
+      this.find(key);
+      return true;
+    } catch (KeyNotFoundException e) {
+      return false;
+    }
+
+    return false;
   } // hasKey(K)
 
   /**
@@ -104,7 +136,13 @@ public class AssociativeArray<K, V> {
    * in the associative array, does nothing.
    */
   public void remove(K key) {
-    // STUB
+    // Removing all instances of key found
+    for (int i = 0; i < this.pairs.length; i++) {
+      if (this.pairs[i].key.equals(key)) {
+        this.pairs[i].key = null;
+        this.size--;
+      } // if
+    } // for
   } // remove(K)
 
   /**
@@ -130,7 +168,15 @@ public class AssociativeArray<K, V> {
    * If no such entry is found, throws an exception.
    */
   public int find(K key) throws KeyNotFoundException {
-    throw new KeyNotFoundException();   // STUB
+    // Getting first instance of key found
+    for (int i = 0; i < this.pairs.length; i++) {
+      if (this.pairs[i].key.equals(key)) {
+        return i;
+      } // if
+    } // for
+    
+    // if not found
+    throw new KeyNotFoundException();
   } // find(K)
 
 } // class AssociativeArray
