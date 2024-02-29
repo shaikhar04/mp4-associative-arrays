@@ -29,3 +29,5 @@ bin
 # Don't let macOS related files get pushed
 .DS_Store
 
+MyTest.java
+
