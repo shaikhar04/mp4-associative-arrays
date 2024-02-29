@@ -25,6 +25,12 @@ public class AssociativeArray<K, V> {
   // +--------+
 
   /**
+   * The size of the associative array (memory allocated to the array).
+   */
+  int capacity;
+
+
+  /**
    * The size of the associative array (the number of key/value pairs).
    */
   int size;
@@ -57,7 +63,14 @@ public class AssociativeArray<K, V> {
    * Create a copy of this AssociativeArray.
    */
   public AssociativeArray<K, V> clone() {
-    return null; // STUB
+    AssociativeArray<K,V> copy = new AssociativeArray<K,V>();
+    for (int i = 0; i < pairs.length; i++) {
+      if (this.size > copy.capacity) {
+        copy.expand();
+      }
+      copy.pairs[i] = this.pairs[i];
+    } // for
+    return copy;
   } // clone()
 
   /**
@@ -75,27 +88,34 @@ public class AssociativeArray<K, V> {
    * Set the value associated with key to value. Future calls to
    * get(key) will return value.
    */
-  public void set(K key, V value) {
+  public void set(K key, V value) throws NullKeyException {
     // Catch null key
-    // if (key == null) {
-    //   throw new NullKeyException();
-    // } // if
-
-    // Setting into first empty spot
-    int setIndex;
-    try {
-      setIndex = this.find(null);
-      this.pairs[setIndex].key = key;
-      this.pairs[setIndex].value = value;
-      this.size++;
-    } catch (KeyNotFoundException e) {
-      // if arr is full expand and try again
-      this.expand();
-      setIndex = this.find(null);
-      this.pairs[setIndex].key = key;
-      this.pairs[setIndex].value = value;
-      this.size++;
+    if (key == null) {
+      throw new NullKeyException();
     }
+
+    int setIndex;
+    // try key in array
+    try {
+      setIndex = this.find(key);
+      this.pairs[setIndex].value = value;
+    } catch (KeyNotFoundException e) {
+      // if key dosent exist then set into a null slot
+      try {
+        setIndex = this.findNull();
+        this.pairs[setIndex] = new KVPair<K,V>(key, value);
+        this.size++;
+      } catch (KeyNotFoundException f) {
+        // Array is full so expand
+        this.expand();
+        capacity = capacity * 2;
+        setIndex = this.size;
+  
+        // then set in first available space
+        this.pairs[setIndex] = new KVPair<K,V>(key, value);
+        this.size++;
+      } // try catch
+    } // try catch
   } // set(K,V)
 
   /**
@@ -126,8 +146,6 @@ public class AssociativeArray<K, V> {
     } catch (KeyNotFoundException e) {
       return false;
     }
-
-    return false;
   } // hasKey(K)
 
   /**
@@ -136,13 +154,15 @@ public class AssociativeArray<K, V> {
    * in the associative array, does nothing.
    */
   public void remove(K key) {
-    // Removing all instances of key found
-    for (int i = 0; i < this.pairs.length; i++) {
-      if (this.pairs[i].key.equals(key)) {
-        this.pairs[i].key = null;
-        this.size--;
-      } // if
-    } // for
+    // Removing instance of key found
+    try {
+      int index = this.find(key);
+      this.pairs[index] = null;
+      this.size--;
+    } catch (KeyNotFoundException e) {
+      // if key not found then do nothing
+      return;
+    } // try to remove
   } // remove(K)
 
   /**
@@ -170,6 +190,11 @@ public class AssociativeArray<K, V> {
   public int find(K key) throws KeyNotFoundException {
     // Getting first instance of key found
     for (int i = 0; i < this.pairs.length; i++) {
+      // Skip null values
+      if (this.pairs[i] == null) {
+        continue;
+      } // if
+
       if (this.pairs[i].key.equals(key)) {
         return i;
       } // if
@@ -179,4 +204,20 @@ public class AssociativeArray<K, V> {
     throw new KeyNotFoundException();
   } // find(K)
 
+
+  /**
+   * Find the index of the first null key in `pairs`.
+   * If no such entry is found, throws an exception.
+   */
+  public int findNull() throws KeyNotFoundException {
+    // Getting first null value
+    for (int i = 0; i < this.pairs.length; i++) {
+      if (this.pairs[i] == null) {
+        return i;
+      } // if
+    } // for
+    
+    // if not found
+    throw new KeyNotFoundException();
+  } // findNull()
 } // class AssociativeArray
