@@ -1,8 +1,8 @@
 Associative Arrays
 ==================
 
-Starter code for a project on associative arrays.
+### @author Arsal Shaikh
+### @author Samuel A. Rebelsky
 
-_Students must replace the contents of this file with appropriate
-contents, including author and date._
-
+### Description
+A simple implementation of Associative Arrays in Java. Stores key value pairs in an expandable list. Values can be looked up by calling keys.
