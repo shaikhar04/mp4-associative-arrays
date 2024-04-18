@@ -52,6 +52,7 @@ public class AssociativeArray<K, V> {
     // Creating new arrays is sometimes a PITN.
     this.pairs = (KVPair<K, V>[]) newInstance((new KVPair<K, V>()).getClass(),
         DEFAULT_CAPACITY);
+    this.capacity = DEFAULT_CAPACITY;
     this.size = 0;
   } // AssociativeArray()
 
@@ -64,12 +65,13 @@ public class AssociativeArray<K, V> {
    */
   public AssociativeArray<K, V> clone() {
     AssociativeArray<K,V> copy = new AssociativeArray<K,V>();
-    for (int i = 0; i < pairs.length; i++) {
+    for (int i = 0; i < this.size; i++) {
       if (this.size > copy.capacity) {
         copy.expand();
-      }
-      copy.pairs[i] = this.pairs[i];
+      } // if
+      copy.pairs[i] = new KVPair<K,V>(this.pairs[i].key, this.pairs[i].value);
     } // for
+    copy.size = this.size;
     return copy;
   } // clone()
 
@@ -77,7 +79,18 @@ public class AssociativeArray<K, V> {
    * Convert the array to a string.
    */
   public String toString() {
-    return "{}"; // STUB
+    // Case: array is empty
+    if (this.size == 0) {
+      return "{}";
+    } // if
+
+    String output = String.format("{ %s: %s", this.pairs[0].key, this.pairs[0].value);
+    for (int i = 1; i < this.size; i++) {
+      output += String.format(", %s: %s", this.pairs[i].key, this.pairs[i].value);
+    } // for
+    output += " }";
+
+    return output;
   } // toString()
 
   // +----------------+----------------------------------------------
@@ -92,7 +105,7 @@ public class AssociativeArray<K, V> {
     // Catch null key
     if (key == null) {
       throw new NullKeyException();
-    }
+    } // if
 
     int setIndex;
     // try key in array
@@ -100,21 +113,17 @@ public class AssociativeArray<K, V> {
       setIndex = this.find(key);
       this.pairs[setIndex].value = value;
     } catch (KeyNotFoundException e) {
-      // if key dosent exist then set into a null slot
-      try {
-        setIndex = this.findNull();
-        this.pairs[setIndex] = new KVPair<K,V>(key, value);
-        this.size++;
-      } catch (KeyNotFoundException f) {
-        // Array is full so expand
+      
+      // if Array is full then expand
+      if (this.size >= this.capacity) {
         this.expand();
-        capacity = capacity * 2;
-        setIndex = this.size;
-  
-        // then set in first available space
-        this.pairs[setIndex] = new KVPair<K,V>(key, value);
-        this.size++;
-      } // try catch
+        capacity = capacity * 2;    
+      } // if
+
+      // then set in first available space
+      setIndex = this.size;
+      this.pairs[setIndex] = new KVPair<K,V>(key, value);
+      this.size++;
     } // try catch
   } // set(K,V)
 
@@ -157,12 +166,13 @@ public class AssociativeArray<K, V> {
     // Removing instance of key found
     try {
       int index = this.find(key);
-      this.pairs[index] = null;
+      this.pairs[index] = this.pairs[this.size - 1];
+      this.pairs[this.size] = new KVPair<>();
       this.size--;
     } catch (KeyNotFoundException e) {
       // if key not found then do nothing
       return;
-    } // try to remove
+    } // try catch
   } // remove(K)
 
   /**
@@ -189,10 +199,10 @@ public class AssociativeArray<K, V> {
    */
   public int find(K key) throws KeyNotFoundException {
     // Getting first instance of key found
-    for (int i = 0; i < this.pairs.length; i++) {
-      // Skip null values
-      if (this.pairs[i] == null) {
-        continue;
+    for (int i = 0; i < this.size; i++) {
+      // Fail on null values
+      if (this.pairs[i].key == null) {
+        throw new KeyNotFoundException();
       } // if
 
       if (this.pairs[i].key.equals(key)) {
@@ -203,21 +213,4 @@ public class AssociativeArray<K, V> {
     // if not found
     throw new KeyNotFoundException();
   } // find(K)
-
-
-  /**
-   * Find the index of the first null key in `pairs`.
-   * If no such entry is found, throws an exception.
-   */
-  public int findNull() throws KeyNotFoundException {
-    // Getting first null value
-    for (int i = 0; i < this.pairs.length; i++) {
-      if (this.pairs[i] == null) {
-        return i;
-      } // if
-    } // for
-    
-    // if not found
-    throw new KeyNotFoundException();
-  } // findNull()
 } // class AssociativeArray
